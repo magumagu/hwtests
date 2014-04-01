@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wiiuse/wpad.h>
+#include <float.h>
+#include <math.h>
 #include "cgx.h"
 #include "cgx_defaults.h"
 #include "gxtest_util.h"
@@ -464,6 +466,247 @@ void ClipTest()
 	END_TEST();
 }
 
+void TestDepth_SetViewport(float origin_x, float origin_y, float width, float height, float z_range, float z_far)
+{
+	CGX_BEGIN_LOAD_XF_REGS(0x101a, 6);
+	wgPipe->F32 = width*0.5;
+	wgPipe->F32 = -height*0.5;
+	wgPipe->F32 = z_range;
+	wgPipe->F32 = 342.0 + origin_x + width*0.5;
+	wgPipe->F32 = 342.0 + origin_y + height*0.5;
+	wgPipe->F32 = z_far;
+}
+
+void TestDepth() {
+	START_TEST();
+
+	CGX_LOAD_BP_REG(CGXDefault<TwoTevStageOrders>(0).hex);
+
+	CGX_BEGIN_LOAD_XF_REGS(0x1009, 1);
+	wgPipe->U32 = 1; // 1 color channel
+
+	LitChannel chan;
+	chan.hex = 0;
+	chan.matsource = 1; // from vertex
+	CGX_BEGIN_LOAD_XF_REGS(0x100e, 1); // color channel 1
+	wgPipe->U32 = chan.hex;
+	CGX_BEGIN_LOAD_XF_REGS(0x1010, 1); // alpha channel 1
+	wgPipe->U32 = chan.hex;
+
+	CGX_LOAD_BP_REG(CGXDefault<TevStageCombiner::AlphaCombiner>(0).hex);
+
+	auto genmode = CGXDefault<GenMode>();
+	genmode.numtevstages = 0; // One stage
+	CGX_LOAD_BP_REG(genmode.hex);
+
+	PE_CONTROL ctrl;
+	ctrl.hex = BPMEM_ZCOMPARE << 24;
+	ctrl.pixel_format = PIXELFMT_Z24; //PIXELFMT_RGB8_Z24;
+	ctrl.zformat = ZC_LINEAR;
+	ctrl.early_ztest = 0;
+	CGX_LOAD_BP_REG(ctrl.hex);
+
+	float testvals[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f, 16748210.0f / 16777216,
+						29006.0f / 16777216, 29007.0f / 16777216, 16748209.0f / 16777216,
+						13822720.0f / 16777216, 8388609.0f / 16777216, 8388611.0f / 16777216,
+						1.0f / 16777216, 16777215.0f / 16777216, 8388610.0f / 16777216,
+						8388607.0f / 16777216/**/, 8388606.0f / 16777216/**/,
+
+						// Random
+						12247796.0f / 16777216,
+						488857.0f / 16777216,
+						14712663.0f / 16777216,
+						12827623.0f / 16777216,
+						2608669.0f / 16777216,
+						6858126.0f / 16777216,/*23*/
+						7466542.0f / 16777216,/*24*/
+						14121641.0f / 16777216,
+						2483886.0f / 16777216,
+						1396355.0f / 16777216,
+						// Around 1/4
+						4194302.0f / 16777216,
+						4194303.0f / 16777216,
+						4194305.0f / 16777216,
+						4194306.0f / 16777216,
+						// Around 3/4
+						12582910.0f / 16777216,
+						12582911.0f / 16777216,
+						12582913.0f / 16777216,
+						12582914.0f / 16777216,
+						// Around 7/8
+						14680063.0f / 16777216,
+						14680064.0f / 16777216,
+						14680065.0f / 16777216,
+						// Out of range
+						//1.5, 1.25,
+						//-0.5
+	};
+#if 0
+	int actualvals[] = {
+		1,
+		12582911,
+		8388608,
+		4194305,
+		1,
+		29007,
+		16748209,
+		16748208,
+		29008,
+		2954497,
+		8388607,
+		8388606,
+		16777214,
+		2,
+		8388607,
+		8388609,
+		8388610,
+		4529421,
+		16288358,
+		2064554,
+		3949594,
+		14168546,
+		9919090, /*23*/
+		9310674, /*24*/
+		2655576,
+		14293329,
+		15380860};
+#endif
+	for (int step = 0; step < int(sizeof(testvals) / sizeof(float)); ++step)
+	{
+		auto zmode = CGXDefault<ZMode>();
+		zmode.testenable = true;
+		zmode.updateenable = true;
+		zmode.func = COMPARE_ALWAYS;
+		CGX_LOAD_BP_REG(zmode.hex);
+
+		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
+
+#if 0
+#define TESTPOWER 15
+		int viewdividefactor = (1 << (16 - TESTPOWER));
+		// Now, enable testing viewport and draw the (red) testing quad
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 / viewdividefactor), double(0x1000000 / viewdividefactor));
+#else
+#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
+		// Now, enable testing viewport and draw the (red) testing quad
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 - 0x400000), double(0x1000000 - 0x400000));
+#endif
+		cc.d = TEVCOLORARG_C0;
+		CGX_LOAD_BP_REG(cc.hex);
+
+		auto tevreg = CGXDefault<TevReg>(1, false); // c0
+		tevreg.red = 0xff;
+		CGX_LOAD_BP_REG(tevreg.low);
+		CGX_LOAD_BP_REG(tevreg.high);
+
+		CGX_BEGIN_LOAD_XF_REGS(0x1005, 1);
+		wgPipe->U32 = 0; // 0 = enable clipping, 1 = disable clipping
+
+		//bool expect_quad_to_be_drawn = true;
+		int test_x = 125, test_y = 25; // Somewhere within the viewport
+		GXTest::Quad test_quad;
+		test_quad.ColorRGBA(0xff, 0, 0, 0xff);
+		test_quad.AtDepth(testvals[step]);
+
+		test_quad.Draw();
+		GXTest::CopyToTestBuffer(0, 0, 199, 49);
+		CGX_WaitForGpuToFinish();
+
+		GXTest::Vec4<u8> result = GXTest::ReadTestBuffer(test_x, test_y, 200);
+		int depthval = (result.r << 16) + (result.g << 8) + (result.b << 0);
+#ifdef TWOTOSIXTEENMINUSONE
+		int guessdepthval = int((1.0f - testvals[step]) * double(0x1000000));
+		if (guessdepthval == 0x1000000)
+			guessdepthval = 1;
+		else if (guessdepthval > 0x1000000 / 4 * 3 - 1)
+			guessdepthval -= 1;
+		else if (guessdepthval < 0x7FFFFF)
+			guessdepthval += 1;
+#elif TESTPOWER == 16
+		int guessdepthval = int((1.0f - testvals[step]) * float(0x1000000 - 0));
+		if (guessdepthval == 0x1000000)
+			guessdepthval = 1;
+		else if (guessdepthval < 0x800000)
+			guessdepthval += 1;
+#elif 0 // Old 2^^15 code
+		float temp = (testvals[step]) * float(0x1000000 / 2) - float(0x1000000 / 4);
+		float temp2 = truncf(temp);
+		temp2 = float(0x1000000 / 4) - temp2;
+		int guessdepthval = (int)temp2;
+		if (guessdepthval == 0x1000000/2)
+			guessdepthval = 1;
+#elif TESTPOWER == 15
+		float temp = (testvals[step]) * float(0x1000000 / 2) - float(0x1000000 / 2);
+		float temp2;
+		if (temp < -0x1000000 / 4)
+		{
+			temp2 = temp;
+		}
+		else
+		{
+			temp2 = roundf(temp);
+		}
+		temp2 = -truncf(temp2);
+		int guessdepthval = (int)temp2;
+		if (guessdepthval == 0x1000000 / 2)
+			guessdepthval = 1;
+#elif TESTPOWER == 14
+		float temp = (testvals[step]) * float(0x1000000 / 4) - float(0x1000000 / 4);
+		float temp2;
+		if (temp < -0x1000000 / 8)
+		{
+			temp2 = temp;
+		}
+		else
+		{
+			temp2 = .5f * roundf(2 * temp);
+		}
+		temp2 = -truncf(temp2);
+		int guessdepthval = (int)temp2;
+		if (guessdepthval == 0x1000000 / 4)
+			guessdepthval = 1;
+#elif TESTPOWER == 13
+		float temp = (testvals[step]) * float(0x1000000 / 8) - float(0x1000000 / 8);
+		float temp2;
+		if (temp < -0x1000000 / 16)
+		{
+			temp2 = temp;
+		}
+		else
+		{
+			temp2 = .25f * roundf(4 * temp);
+		}
+		temp2 = -truncf(temp2);
+		int guessdepthval = (int)temp2;
+		if (guessdepthval == 0x1000000 / 8)
+			guessdepthval = 1;
+#elif TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN
+		// XXX This still produces bad results
+		double temp = double(testvals[step]) * 0xC00000 - 0xC00000;
+		float temp2 = (testvals[step]);
+		temp2 = temp2 * 0xC00000 - 0xC00000;
+		temp2 = -round(temp2);
+		if (temp2 < 0x600000 - 2)
+			temp2 += 1;
+		//else continue;
+		int guessdepthval = (int)temp2;
+		if (guessdepthval == 0xC00000)
+			guessdepthval = 1;
+#else
+#error "No define?"
+#endif
+		//depthval = ((*(int*)(&randfloat) & 0x7FFFFF) | 0x800000) >> (126 - (*(int*)(&randfloat) >> 23));
+		//depthval = actualvals[step];
+		DO_TEST(depthval == guessdepthval, "Subtest %d failed: input %d, guess %d, actual %d\n", step + 1, int(testvals[step] * 0x1000000), guessdepthval, depthval);
+		network_printf("Step %d Val %f\n", step, - temp);
+		//printf("r: %d, g: %d, b: %d, a: %d, depth: %u\n", result.r, result.g, result.b, result.a, (result.r << 16) + (result.g << 8) + (result.b << 0));
+
+		GXTest::DebugDisplayEfbContents();
+	}
+
+	END_TEST();
+}
+
 int main()
 {
 	network_init();
@@ -471,9 +714,10 @@ int main()
 
 	GXTest::Init();
 
-	BitfieldTest();
-	TevCombinerTest();
-	ClipTest();
+	//BitfieldTest();
+	//TevCombinerTest();
+	//ClipTest();
+	TestDepth();
 
 	network_printf("Shutting down...\n");
 	network_shutdown();
