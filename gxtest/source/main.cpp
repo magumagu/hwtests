@@ -506,11 +506,11 @@ void TestDepth() {
 	ctrl.early_ztest = 0;
 	CGX_LOAD_BP_REG(ctrl.hex);
 
-	float testvals[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f, 16748210.0f / 16777216,
+	float testvals[] = { 0.25f, 0.5f, 0.75f, 1.0f, 16748210.0f / 16777216,
 						29006.0f / 16777216, 29007.0f / 16777216, 16748209.0f / 16777216,
 						13822720.0f / 16777216, 8388609.0f / 16777216, 8388611.0f / 16777216,
 						1.0f / 16777216, 16777215.0f / 16777216, 8388610.0f / 16777216,
-						8388607.0f / 16777216/**/, 8388606.0f / 16777216/**/,
+						8388607.0f / 16777216, 8388606.0f / 16777216,
 
 						// Random
 						12247796.0f / 16777216,
@@ -518,8 +518,8 @@ void TestDepth() {
 						14712663.0f / 16777216,
 						12827623.0f / 16777216,
 						2608669.0f / 16777216,
-						6858126.0f / 16777216,/*23*/
-						7466542.0f / 16777216,/*24*/
+						6858126.0f / 16777216,
+						7466542.0f / 16777216,
 						14121641.0f / 16777216,
 						2483886.0f / 16777216,
 						1396355.0f / 16777216,
@@ -541,36 +541,9 @@ void TestDepth() {
 						12247795.0f / 16777216,
 						12247797.0f / 16777216,
 	};
-#if 0
-	int actualvals[] = {
-		1,
-		12582911,
-		8388608,
-		4194305,
-		1,
-		29007,
-		16748209,
-		16748208,
-		29008,
-		2954497,
-		8388607,
-		8388606,
-		16777214,
-		2,
-		8388607,
-		8388609,
-		8388610,
-		4529421,
-		16288358,
-		2064554,
-		3949594,
-		14168546,
-		9919090, /*23*/
-		9310674, /*24*/
-		2655576,
-		14293329,
-		15380860};
-#endif
+	float test_zranges[] = { 0xFFFFFF, 0xFFFFFE, 0x800001, 0x800002, 0x1000000,
+						     0x800000, 0x400000, 0x200000, 0xC00000, 0x600000 };
+	for (int cur_range = 0; cur_range < int(sizeof(test_zranges) / sizeof(float)); cur_range++)
 	for (int step = 0; step < int(sizeof(testvals) / sizeof(float)); ++step)
 	//for (int step = 0; step < 2000; ++step)
 	{
@@ -582,7 +555,7 @@ void TestDepth() {
 
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
-		float zrange = 0x800002;
+		float zrange = test_zranges[cur_range];
 		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, zrange, zrange);
 
 		cc.d = TEVCOLORARG_C0;
@@ -596,7 +569,6 @@ void TestDepth() {
 		CGX_BEGIN_LOAD_XF_REGS(0x1005, 1);
 		wgPipe->U32 = 0; // 0 = enable clipping, 1 = disable clipping
 
-		//bool expect_quad_to_be_drawn = true;
 		int test_x = 125, test_y = 25; // Somewhere within the viewport
 		GXTest::Quad test_quad;
 		test_quad.ColorRGBA(0xff, 0, 0, 0xff);
@@ -615,117 +587,99 @@ void TestDepth() {
 		int guessdepthval;
 		if (zrange == 0xFFFFFF)
 		{
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x400001)
-				guessdepthval = 0xFFFFFF - guessdepthval;
-			else if (guessdepthval < 0x800002)
-				guessdepthval = 0xFFFFFF - guessdepthval + 1;
+			int input = int(testval * 0x1000000);
+			if (input < 0x400001)
+				guessdepthval = 0xFFFFFF - input;
+			else if (input < 0x800002)
+				guessdepthval = 0xFFFFFF - input + 1;
 			else
-				guessdepthval = 0xFFFFFF - guessdepthval + 2;
-			if (guessdepthval == 0xFFFFFF)
-				guessdepthval = 1;
+				guessdepthval = 0xFFFFFF - input + 2;
 		}
 		else if (zrange == 0xFFFFFE)
 		{
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x400001)
-				guessdepthval = 0xFFFFFE - guessdepthval;
-			else if (guessdepthval < 0x800001)
-				guessdepthval = 0xFFFFFE - guessdepthval + 1;
-			else if (guessdepthval < 0x800003)
-				guessdepthval = 0xFFFFFE - guessdepthval + 2;
+			int input = int(testval * 0x1000000);
+			if (input < 0x400001)
+				guessdepthval = 0xFFFFFE - input;
+			else if (input < 0x800001)
+				guessdepthval = 0xFFFFFE - input + 1;
+			else if (input < 0x800003)
+				guessdepthval = 0xFFFFFE - input + 2;
 			else
-				guessdepthval = 0xFFFFFE - guessdepthval + 3;
-			if (guessdepthval == 0xFFFFFE)
-				guessdepthval = 1;
+				guessdepthval = 0xFFFFFE - input + 3;
 		}
 		else if (zrange == 0x800001) {
-			guessdepthval = int(testval * 0x1000000);
-			guessdepthval = 0x800001 - (guessdepthval + 1) / 2;
-			if (guessdepthval == 0x800001)
-				guessdepthval = 1;
+			int input = int(testval * 0x1000000);
+			guessdepthval = 0x800001 - (input + 1) / 2;
 		}
 		else if (zrange == 0x800002) {
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval == 0)
-				guessdepthval = 1;
-			else if (guessdepthval < 0x300001)
-				guessdepthval = 0x800002 - (guessdepthval + 1) / 2;
-			else if (guessdepthval < 0xC00001)
-				guessdepthval = 0x800002 - (guessdepthval + 2) / 2;
-			else if (guessdepthval != 0xFFFFFF)
-				guessdepthval = 0x800002 - (guessdepthval + 3) / 2;
+			int input = int(testval * 0x1000000);
+			if (input < 0x300001)
+				guessdepthval = 0x800002 - (input + 1) / 2;
+			else if (input < 0xC00001)
+				guessdepthval = 0x800002 - (input + 2) / 2;
+			else if (input != 0xFFFFFF)
+				guessdepthval = 0x800002 - (input + 3) / 2;
 			else
 				guessdepthval = 2;
 		}
 		else if (zrange == 0x1000000)
 		{
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x800001)
-				guessdepthval = 0x1000000 - (guessdepthval);
+			int input = int(testval * 0x1000000);
+			if (input < 0x800001)
+				guessdepthval = 0x1000000 - (input);
 			else
-				guessdepthval = 0x1000000 - (guessdepthval - 1);
-			if (guessdepthval == 0x1000000)
-				guessdepthval = 1;
+				guessdepthval = 0x1000000 - (input - 1);
 		}
-		else if (zrange == 0x800000) {
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x800000)
-				guessdepthval = 0x800000 - (guessdepthval + 1) / 2;
+		else if (zrange == 0x800000)
+		{
+			int input = int(testval * 0x1000000);
+			if (input < 0x800000)
+				guessdepthval = 0x800000 - (input + 1) / 2;
 			else
-				guessdepthval = 0x800000 - (guessdepthval) / 2;
-			if (guessdepthval == 0x800000)
-				guessdepthval = 1;
+				guessdepthval = 0x800000 - (input) / 2;
 		}
-		else if (zrange == 0x400000) {
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x800000)
-				guessdepthval = 0x400000 - (guessdepthval + 3) / 4;
+		else if (zrange == 0x400000)
+		{
+			int input = int(testval * 0x1000000);
+			if (input < 0x800000)
+				guessdepthval = 0x400000 - (input + 3) / 4;
 			else
-				guessdepthval = 0x400000 - (guessdepthval + 2) / 4;
-			if (guessdepthval == 0x400000)
-				guessdepthval = 1;
+				guessdepthval = 0x400000 - (input + 2) / 4;
 		}
-		else if (zrange == 0x200000) {
-			guessdepthval = int(testval * 0x1000000);
-			if (guessdepthval < 0x800000)
-				guessdepthval = 0x200000 - (guessdepthval + 7) / 8;
+		else if (zrange == 0x200000)
+		{
+			int input = int(testval * 0x1000000);
+			if (input < 0x800000)
+				guessdepthval = 0x200000 - (input + 7) / 8;
 			else
-				guessdepthval = 0x200000 - (guessdepthval + 6) / 8;
-			if (guessdepthval == 0x200000)
-				guessdepthval = 1;
+				guessdepthval = 0x200000 - (input + 6) / 8;
 		}
-		else if (zrange == 0xC00000) {
-			guessdepthval = int(testval * 0x1000000);
-			int input = guessdepthval;
+		else if (zrange == 0xC00000)
+		{
+			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
-				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 1) / 4);
+				guessdepthval = 0xC00000 - (input - (input + 1) / 4);
 			else if (input <= 0x555555)
-				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 2) / 4);
+				guessdepthval = 0xC00000 - (input - (input + 2) / 4);
 			else if (input <= 0x800000)
-				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 3) / 4);
+				guessdepthval = 0xC00000 - (input - (input + 3) / 4);
 			else if (input <= 0xaaaaab)
-				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 4) / 4);
+				guessdepthval = 0xC00000 - (input - (input + 4) / 4);
 			else
-				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 6) / 4);
-			if (guessdepthval == 0xC00000)
-				guessdepthval = 1;
+				guessdepthval = 0xC00000 - (input - (input + 6) / 4);
 		}
 		else if (zrange == 0x600000) {
-			guessdepthval = int(testval * 0x1000000);
-			int input = guessdepthval;
+			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
-				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 1) / 8);
+				guessdepthval = 0x600000 - (input - (input * 5 + 1) / 8);
 			else if (input <= 0x555555)
-				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 2) / 8);
+				guessdepthval = 0x600000 - (input - (input * 5 + 2) / 8);
 			else if (input <= 0x800000)
-				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 3) / 8);
+				guessdepthval = 0x600000 - (input - (input * 5 + 3) / 8);
 			else if (input <= 0xaaaaab)
-				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 4) / 8);
+				guessdepthval = 0x600000 - (input - (input * 5 + 4) / 8);
 			else
-				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 6) / 8);
-			if (guessdepthval == 0x600000)
-				guessdepthval = 1;
+				guessdepthval = 0x600000 - (input - (input * 5 + 6) / 8);
 		}
 		else
 		{
@@ -733,17 +687,8 @@ void TestDepth() {
 			guessdepthval = int(-testval * zrange + zrange);
 		}
 
-		//depthval = ((*(int*)(&randfloat) & 0x7FFFFF) | 0x800000) >> (126 - (*(int*)(&randfloat) >> 23));
-		//depthval = actualvals[step];
-		DO_TEST(depthval == guessdepthval, "Subtest %d failed: input %d, guess %d, actual %d\n", step + 1, int(testval * 0x1000000), guessdepthval, depthval);
-		//if (depthval != guessdepthval)
-		//	break;
-		//network_printf("%f\n", temp);
+		DO_TEST(depthval == guessdepthval, "zrange %d, input %d, guess %d, actual %d\n", int(zrange), int(testval * 0x1000000), guessdepthval, depthval);
 		//network_printf("%10d %10d\n", int(testval * 0x1000000), depthval);
-		//printf("r: %d, g: %d, b: %d, a: %d, depth: %u\n", result.r, result.g, result.b, result.a, (result.r << 16) + (result.g << 8) + (result.b << 0));
-		//if (step % 1000 == 0) {
-		//	network_printf("Step %d Val %f\n", step + 1, -temp);
-		//}
 		GXTest::DebugDisplayEfbContents();
 	}
 
