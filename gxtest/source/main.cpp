@@ -556,7 +556,8 @@ void TestDepth() {
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
 		float zrange = test_zranges[cur_range];
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, zrange, zrange);
+		float zfar = zrange;  // specific cases assume zfar == zrange for simplicity.
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, zrange, zfar);
 
 		cc.d = TEVCOLORARG_C0;
 		CGX_LOAD_BP_REG(cc.hex);
@@ -687,7 +688,7 @@ void TestDepth() {
 		else
 		{
 			// TODO: General case rounds incorrectly
-			guessdepthval = int(-testval * zrange + zrange);
+			guessdepthval = int(-testval * zrange + zfar);
 		}
 
 		DO_TEST(depthval == guessdepthval, "zrange %d, input %d, guess %d, actual %d\n", int(zrange), int(testval * 0x1000000), guessdepthval, depthval);
