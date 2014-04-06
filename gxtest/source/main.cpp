@@ -607,11 +607,13 @@ void TestDepth() {
 			else
 				guessdepthval = 0xFFFFFE - input + 3;
 		}
-		else if (zrange == 0x800001) {
+		else if (zrange == 0x800001)
+		{
 			int input = int(testval * 0x1000000);
 			guessdepthval = 0x800001 - (input + 1) / 2;
 		}
-		else if (zrange == 0x800002) {
+		else if (zrange == 0x800002)
+		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x300001)
 				guessdepthval = 0x800002 - (input + 1) / 2;
@@ -668,7 +670,8 @@ void TestDepth() {
 			else
 				guessdepthval = 0xC00000 - (input - (input + 6) / 4);
 		}
-		else if (zrange == 0x600000) {
+		else if (zrange == 0x600000)
+		{
 			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
 				guessdepthval = 0x600000 - (input - (input * 5 + 1) / 8);
