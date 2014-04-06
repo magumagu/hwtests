@@ -582,17 +582,18 @@ void TestDepth() {
 
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
-#if 1
+#if 0
 #define TESTPOWER 16
 		int viewdividefactor = (1 << (16 - TESTPOWER));
 		// Now, enable testing viewport and draw the (red) testing quad
 		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 / viewdividefactor), double(0x1000000 / viewdividefactor));
 #else
-#define TESTTWOTOSIXTEENMINUSONE 1
+//#define TESTTWOTOSIXTEENMINUSONE 1
+#define TESTTWOTOSIXTEENMINUSTWO 1
 //#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
 //#define TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN 1
 		// Now, enable testing viewport and draw the (red) testing quad
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0xFFFFFF), double(0xFFFFFF));
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0xFFFFFE), double(0xFFFFFE));
 #endif
 		cc.d = TEVCOLORARG_C0;
 		CGX_LOAD_BP_REG(cc.hex);
@@ -610,7 +611,7 @@ void TestDepth() {
 		GXTest::Quad test_quad;
 		test_quad.ColorRGBA(0xff, 0, 0, 0xff);
 		float testval = testvals[step];
-		//float testval = (step + 1 + 0xFFFFFF - 40) / float(0x1000000);
+		//float testval = (step + 1 + 0x400000 - 20) / float(0x1000000);
 		//float testval = (rand() & 0xFFFFFF) / float(0x1000000);
 		test_quad.AtDepth(testval);
 
@@ -629,6 +630,18 @@ void TestDepth() {
 		else
 			guessdepthval = 0xFFFFFF - guessdepthval + 2;
 		if (guessdepthval == 0xFFFFFF)
+			guessdepthval = 1;
+#elif TESTTWOTOSIXTEENMINUSTWO
+		int guessdepthval = int(testval * 0x1000000);
+		if (guessdepthval < 0x400001)
+			guessdepthval = 0xFFFFFE - guessdepthval;
+		else if (guessdepthval < 0x800001)
+			guessdepthval = 0xFFFFFE - guessdepthval + 1;
+		else if (guessdepthval < 0x800003)
+			guessdepthval = 0xFFFFFE - guessdepthval + 2;
+		else
+			guessdepthval = 0xFFFFFE - guessdepthval + 3;
+		if (guessdepthval == 0xFFFFFE)
 			guessdepthval = 1;
 #elif TESTPOWER == 16
 		int guessdepthval = int(testval * 0x1000000);
