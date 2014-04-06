@@ -537,9 +537,9 @@ void TestDepth() {
 						14680063.0f / 16777216,
 						14680064.0f / 16777216,
 						14680065.0f / 16777216,
-						// Out of range
-						//1.5, 1.25,
-						//-0.5
+						// Misc
+						12247795.0f / 16777216,
+						12247797.0f / 16777216,
 	};
 #if 0
 	int actualvals[] = {
@@ -572,6 +572,7 @@ void TestDepth() {
 		15380860};
 #endif
 	for (int step = 0; step < int(sizeof(testvals) / sizeof(float)); ++step)
+	//for (int step = 0; step < 2000; ++step)
 	{
 		auto zmode = CGXDefault<ZMode>();
 		zmode.testenable = true;
@@ -587,9 +588,10 @@ void TestDepth() {
 		// Now, enable testing viewport and draw the (red) testing quad
 		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 / viewdividefactor), double(0x1000000 / viewdividefactor));
 #else
-#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
+//#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
+#define TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN 1
 		// Now, enable testing viewport and draw the (red) testing quad
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 - 0x400000), double(0x1000000 - 0x400000));
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x600000), double(0x600000));
 #endif
 		cc.d = TEVCOLORARG_C0;
 		CGX_LOAD_BP_REG(cc.hex);
@@ -606,7 +608,10 @@ void TestDepth() {
 		int test_x = 125, test_y = 25; // Somewhere within the viewport
 		GXTest::Quad test_quad;
 		test_quad.ColorRGBA(0xff, 0, 0, 0xff);
-		test_quad.AtDepth(testvals[step]);
+		float testval = testvals[step];
+		//float testval = (step + 1 + 0x400000 - 20) / float(0x1000000);
+		//float testval = (rand() & 0xFFFFFF) / float(0x1000000);
+		test_quad.AtDepth(testval);
 
 		test_quad.Draw();
 		GXTest::CopyToTestBuffer(0, 0, 199, 49);
@@ -615,7 +620,7 @@ void TestDepth() {
 		GXTest::Vec4<u8> result = GXTest::ReadTestBuffer(test_x, test_y, 200);
 		int depthval = (result.r << 16) + (result.g << 8) + (result.b << 0);
 #ifdef TWOTOSIXTEENMINUSONE
-		int guessdepthval = int((1.0f - testvals[step]) * double(0x1000000));
+		int guessdepthval = int((1.0f - testval) * double(0x1000000));
 		if (guessdepthval == 0x1000000)
 			guessdepthval = 1;
 		else if (guessdepthval > 0x1000000 / 4 * 3 - 1)
@@ -623,20 +628,20 @@ void TestDepth() {
 		else if (guessdepthval < 0x7FFFFF)
 			guessdepthval += 1;
 #elif TESTPOWER == 16
-		int guessdepthval = int((1.0f - testvals[step]) * float(0x1000000 - 0));
+		int guessdepthval = int((1.0f - testval) * float(0x1000000 - 0));
 		if (guessdepthval == 0x1000000)
 			guessdepthval = 1;
 		else if (guessdepthval < 0x800000)
 			guessdepthval += 1;
 #elif 0 // Old 2^^15 code
-		float temp = (testvals[step]) * float(0x1000000 / 2) - float(0x1000000 / 4);
+		float temp = testval * float(0x1000000 / 2) - float(0x1000000 / 4);
 		float temp2 = truncf(temp);
 		temp2 = float(0x1000000 / 4) - temp2;
 		int guessdepthval = (int)temp2;
 		if (guessdepthval == 0x1000000/2)
 			guessdepthval = 1;
 #elif TESTPOWER == 15
-		float temp = (testvals[step]) * float(0x1000000 / 2) - float(0x1000000 / 2);
+		float temp = testval * float(0x1000000 / 2) - float(0x1000000 / 2);
 		float temp2;
 		if (temp < -0x1000000 / 4)
 		{
@@ -651,7 +656,7 @@ void TestDepth() {
 		if (guessdepthval == 0x1000000 / 2)
 			guessdepthval = 1;
 #elif TESTPOWER == 14
-		float temp = (testvals[step]) * float(0x1000000 / 4) - float(0x1000000 / 4);
+		float temp = testval * float(0x1000000 / 4) - float(0x1000000 / 4);
 		float temp2;
 		if (temp < -0x1000000 / 8)
 		{
@@ -666,7 +671,7 @@ void TestDepth() {
 		if (guessdepthval == 0x1000000 / 4)
 			guessdepthval = 1;
 #elif TESTPOWER == 13
-		float temp = (testvals[step]) * float(0x1000000 / 8) - float(0x1000000 / 8);
+		float temp = (testval)* float(0x1000000 / 8) - float(0x1000000 / 8);
 		float temp2;
 		if (temp < -0x1000000 / 16)
 		{
@@ -681,26 +686,51 @@ void TestDepth() {
 		if (guessdepthval == 0x1000000 / 8)
 			guessdepthval = 1;
 #elif TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN
-		// XXX This still produces bad results
-		double temp = double(testvals[step]) * 0xC00000 - 0xC00000;
-		float temp2 = (testvals[step]);
-		temp2 = temp2 * 0xC00000 - 0xC00000;
-		temp2 = -round(temp2);
-		if (temp2 < 0x600000 - 2)
-			temp2 += 1;
-		//else continue;
-		int guessdepthval = (int)temp2;
+		double temp = float(testval) * 0xC00000 - 0xC00000;
+		int guessdepthval = int(testval * 0x1000000);
+		int input = guessdepthval;
+		if (input <= 0x400000)
+			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 1) / 4);
+		else if (input <= 0x555555)
+			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 2) / 4);
+		else if (input <= 0x800000)
+			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 3) / 4);
+		else if (input <= 0xaaaaab)
+			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 4) / 4);
+		else
+			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 6) / 4);
 		if (guessdepthval == 0xC00000)
+			guessdepthval = 1;
+#elif TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN
+		double temp = float(testval) * 0x600000 - 0x600000;
+		int guessdepthval = int(testval * 0x1000000);
+		int input = guessdepthval;
+		if (input <= 0x400000)
+			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 1) / 8);
+		else if (input <= 0x555555)
+			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 2) / 8);
+		else if (input <= 0x800000)
+			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 3) / 8);
+		else if (input <= 0xaaaaab)
+			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 4) / 8);
+		else
+			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 6) / 8);
+		if (guessdepthval == 0x600000)
 			guessdepthval = 1;
 #else
 #error "No define?"
 #endif
 		//depthval = ((*(int*)(&randfloat) & 0x7FFFFF) | 0x800000) >> (126 - (*(int*)(&randfloat) >> 23));
 		//depthval = actualvals[step];
-		DO_TEST(depthval == guessdepthval, "Subtest %d failed: input %d, guess %d, actual %d\n", step + 1, int(testvals[step] * 0x1000000), guessdepthval, depthval);
-		network_printf("Step %d Val %f\n", step, - temp);
+		DO_TEST(depthval == guessdepthval, "Subtest %d failed: input %d, guess %d, actual %d\n", step + 1, int(testval * 0x1000000), guessdepthval, depthval);
+		//if (depthval != guessdepthval)
+		//	break;
+		//network_printf("%f\n", temp);
+		//network_printf("%10d %10d\n", int(testval * 0x1000000), depthval);
 		//printf("r: %d, g: %d, b: %d, a: %d, depth: %u\n", result.r, result.g, result.b, result.a, (result.r << 16) + (result.g << 8) + (result.b << 0));
-
+		//if (step % 1000 == 0) {
+		//	network_printf("Step %d Val %f\n", step + 1, -temp);
+		//}
 		GXTest::DebugDisplayEfbContents();
 	}
 
