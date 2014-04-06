@@ -582,21 +582,9 @@ void TestDepth() {
 
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
-#if 0
-#define TESTPOWER 14
-		int viewdividefactor = (1 << (16 - TESTPOWER));
-		// Now, enable testing viewport and draw the (red) testing quad
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 / viewdividefactor), double(0x1000000 / viewdividefactor));
-#else
-//#define TESTTWOTOSIXTEENMINUSONE 1
-//#define TESTTWOTOSIXTEENMINUSTWO 1
-//#define TESTTWOTOFIFTEENPLUSONE 1
-#define TESTTWOTOFIFTEENPLUSTWO 1
-//#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
-//#define TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN 1
-		// Now, enable testing viewport and draw the (red) testing quad
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x800002), double(0x800002));
-#endif
+		float zrange = 0x800002;
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, zrange, zrange);
+
 		cc.d = TEVCOLORARG_C0;
 		CGX_LOAD_BP_REG(cc.hex);
 
@@ -623,120 +611,128 @@ void TestDepth() {
 
 		GXTest::Vec4<u8> result = GXTest::ReadTestBuffer(test_x, test_y, 200);
 		int depthval = (result.r << 16) + (result.g << 8) + (result.b << 0);
-#ifdef TESTTWOTOSIXTEENMINUSONE
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x400001)
-			guessdepthval = 0xFFFFFF - guessdepthval;
-		else if (guessdepthval < 0x800002)
-			guessdepthval = 0xFFFFFF - guessdepthval + 1;
+
+		int guessdepthval;
+		if (zrange == 0xFFFFFF)
+		{
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x400001)
+				guessdepthval = 0xFFFFFF - guessdepthval;
+			else if (guessdepthval < 0x800002)
+				guessdepthval = 0xFFFFFF - guessdepthval + 1;
+			else
+				guessdepthval = 0xFFFFFF - guessdepthval + 2;
+			if (guessdepthval == 0xFFFFFF)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0xFFFFFE)
+		{
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x400001)
+				guessdepthval = 0xFFFFFE - guessdepthval;
+			else if (guessdepthval < 0x800001)
+				guessdepthval = 0xFFFFFE - guessdepthval + 1;
+			else if (guessdepthval < 0x800003)
+				guessdepthval = 0xFFFFFE - guessdepthval + 2;
+			else
+				guessdepthval = 0xFFFFFE - guessdepthval + 3;
+			if (guessdepthval == 0xFFFFFE)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x800001) {
+			guessdepthval = int(testval * 0x1000000);
+			guessdepthval = 0x800001 - (guessdepthval + 1) / 2;
+			if (guessdepthval == 0x800001)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x800002) {
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval == 0)
+				guessdepthval = 1;
+			else if (guessdepthval < 0x300001)
+				guessdepthval = 0x800002 - (guessdepthval + 1) / 2;
+			else if (guessdepthval < 0xC00001)
+				guessdepthval = 0x800002 - (guessdepthval + 2) / 2;
+			else if (guessdepthval != 0xFFFFFF)
+				guessdepthval = 0x800002 - (guessdepthval + 3) / 2;
+			else
+				guessdepthval = 2;
+		}
+		else if (zrange == 0x1000000)
+		{
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x800001)
+				guessdepthval = 0x1000000 - (guessdepthval);
+			else
+				guessdepthval = 0x1000000 - (guessdepthval - 1);
+			if (guessdepthval == 0x1000000)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x800000) {
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x800000)
+				guessdepthval = 0x800000 - (guessdepthval + 1) / 2;
+			else
+				guessdepthval = 0x800000 - (guessdepthval) / 2;
+			if (guessdepthval == 0x800000)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x400000) {
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x800000)
+				guessdepthval = 0x400000 - (guessdepthval + 3) / 4;
+			else
+				guessdepthval = 0x400000 - (guessdepthval + 2) / 4;
+			if (guessdepthval == 0x400000)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x200000) {
+			guessdepthval = int(testval * 0x1000000);
+			if (guessdepthval < 0x800000)
+				guessdepthval = 0x200000 - (guessdepthval + 7) / 8;
+			else
+				guessdepthval = 0x200000 - (guessdepthval + 6) / 8;
+			if (guessdepthval == 0x200000)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0xC00000) {
+			guessdepthval = int(testval * 0x1000000);
+			int input = guessdepthval;
+			if (input <= 0x400000)
+				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 1) / 4);
+			else if (input <= 0x555555)
+				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 2) / 4);
+			else if (input <= 0x800000)
+				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 3) / 4);
+			else if (input <= 0xaaaaab)
+				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 4) / 4);
+			else
+				guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 6) / 4);
+			if (guessdepthval == 0xC00000)
+				guessdepthval = 1;
+		}
+		else if (zrange == 0x600000) {
+			guessdepthval = int(testval * 0x1000000);
+			int input = guessdepthval;
+			if (input <= 0x400000)
+				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 1) / 8);
+			else if (input <= 0x555555)
+				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 2) / 8);
+			else if (input <= 0x800000)
+				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 3) / 8);
+			else if (input <= 0xaaaaab)
+				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 4) / 8);
+			else
+				guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 6) / 8);
+			if (guessdepthval == 0x600000)
+				guessdepthval = 1;
+		}
 		else
-			guessdepthval = 0xFFFFFF - guessdepthval + 2;
-		if (guessdepthval == 0xFFFFFF)
-			guessdepthval = 1;
-#elif TESTTWOTOSIXTEENMINUSTWO
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x400001)
-			guessdepthval = 0xFFFFFE - guessdepthval;
-		else if (guessdepthval < 0x800001)
-			guessdepthval = 0xFFFFFE - guessdepthval + 1;
-		else if (guessdepthval < 0x800003)
-			guessdepthval = 0xFFFFFE - guessdepthval + 2;
-		else
-			guessdepthval = 0xFFFFFE - guessdepthval + 3;
-		if (guessdepthval == 0xFFFFFE)
-			guessdepthval = 1;
-#elif TESTTWOTOFIFTEENPLUSONE
-		int guessdepthval = int(testval * 0x1000000);
-		guessdepthval = 0x800001 - (guessdepthval + 1) / 2;
-		if (guessdepthval == 0x800001)
-			guessdepthval = 1;
-#elif TESTTWOTOFIFTEENPLUSTWO
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval == 0)
-			guessdepthval = 1;
-		else if (guessdepthval < 0x300001)
-			guessdepthval = 0x800002 - (guessdepthval + 1) / 2;
-		else if (guessdepthval < 0xC00001)
-			guessdepthval = 0x800002 - (guessdepthval + 2) / 2;
-		else if (guessdepthval != 0xFFFFFF)
-			guessdepthval = 0x800002 - (guessdepthval + 3) / 2;
-		else
-			guessdepthval = 2;
-#elif TESTPOWER == 16
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x800001)
-			guessdepthval = 0x1000000 - (guessdepthval);
-		else
-			guessdepthval = 0x1000000 - (guessdepthval - 1);
-		if (guessdepthval == 0x1000000)
-			guessdepthval = 1;
-#elif TESTPOWER == 15
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x800000)
-			guessdepthval = 0x800000 - (guessdepthval + 1) / 2;
-		else
-			guessdepthval = 0x800000 - (guessdepthval) / 2;
-		if (guessdepthval == 0x800000)
-			guessdepthval = 1;
-#if 0
-		int guessdepthval = int(testval * 0x1000000);
-		guessdepthval = 0x1000000 - guessdepthval;
-		if (guessdepthval == 0x1000000)
-			guessdepthval = 1;
-		else
-			guessdepthval = int((guessdepthval * 0x7FFFFFLL + 0xFFFFFF) / 0x1000000);
-#endif
-#elif TESTPOWER == 14
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x800000)
-			guessdepthval = 0x400000 - (guessdepthval + 3) / 4;
-		else
-			guessdepthval = 0x400000 - (guessdepthval + 2) / 4;
-		if (guessdepthval == 0x400000)
-			guessdepthval = 1;
-#elif TESTPOWER == 13
-		int guessdepthval = int(testval * 0x1000000);
-		if (guessdepthval < 0x800000)
-			guessdepthval = 0x200000 - (guessdepthval + 7) / 8;
-		else
-			guessdepthval = 0x200000 - (guessdepthval + 6) / 8;
-		if (guessdepthval == 0x200000)
-			guessdepthval = 1;
-#elif TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN
-		double temp = float(testval) * 0xC00000 - 0xC00000;
-		int guessdepthval = int(testval * 0x1000000);
-		int input = guessdepthval;
-		if (input <= 0x400000)
-			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 1) / 4);
-		else if (input <= 0x555555)
-			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 2) / 4);
-		else if (input <= 0x800000)
-			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 3) / 4);
-		else if (input <= 0xaaaaab)
-			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 4) / 4);
-		else
-			guessdepthval = 0xC00000 - (guessdepthval - (guessdepthval + 6) / 4);
-		if (guessdepthval == 0xC00000)
-			guessdepthval = 1;
-#elif TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN
-		double temp = float(testval) * 0x600000 - 0x600000;
-		int guessdepthval = int(testval * 0x1000000);
-		int input = guessdepthval;
-		if (input <= 0x400000)
-			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 1) / 8);
-		else if (input <= 0x555555)
-			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 2) / 8);
-		else if (input <= 0x800000)
-			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 3) / 8);
-		else if (input <= 0xaaaaab)
-			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 4) / 8);
-		else
-			guessdepthval = 0x600000 - (guessdepthval - (guessdepthval * 5 + 6) / 8);
-		if (guessdepthval == 0x600000)
-			guessdepthval = 1;
-#else
-#error "No define?"
-#endif
+		{
+			// TODO: General case rounds incorrectly
+			guessdepthval = int(-testval * zrange + zrange);
+		}
+
 		//depthval = ((*(int*)(&randfloat) & 0x7FFFFF) | 0x800000) >> (126 - (*(int*)(&randfloat) >> 23));
 		//depthval = actualvals[step];
 		DO_TEST(depthval == guessdepthval, "Subtest %d failed: input %d, guess %d, actual %d\n", step + 1, int(testval * 0x1000000), guessdepthval, depthval);
