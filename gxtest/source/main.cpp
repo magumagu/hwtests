@@ -583,17 +583,18 @@ void TestDepth() {
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
 #if 0
-#define TESTPOWER 16
+#define TESTPOWER 14
 		int viewdividefactor = (1 << (16 - TESTPOWER));
 		// Now, enable testing viewport and draw the (red) testing quad
 		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0x1000000 / viewdividefactor), double(0x1000000 / viewdividefactor));
 #else
-//#define TESTTWOTOSIXTEENMINUSONE 1
-#define TESTTWOTOSIXTEENMINUSTWO 1
+#define TESTTWOTOSIXTEENMINUSONE 1
+//#define TESTTWOTOSIXTEENMINUSTWO 1
+//#define TESTTWOTOFIFTEENPLUSONE 1
 //#define TESTTWOTOSIXTEENMINUSTWOTOFOURTEEN 1
 //#define TESTTWOTOFIFTEENMINUSTWOTOTHIRTEEN 1
 		// Now, enable testing viewport and draw the (red) testing quad
-		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0xFFFFFE), double(0xFFFFFE));
+		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, double(0xFFFFFF), double(0xFFFFFF));
 #endif
 		cc.d = TEVCOLORARG_C0;
 		CGX_LOAD_BP_REG(cc.hex);
@@ -643,6 +644,11 @@ void TestDepth() {
 			guessdepthval = 0xFFFFFE - guessdepthval + 3;
 		if (guessdepthval == 0xFFFFFE)
 			guessdepthval = 1;
+#elif TESTTWOTOFIFTEENPLUSONE
+		int guessdepthval = int(testval * 0x1000000);
+		guessdepthval = 0x800001 - (guessdepthval + 1) / 2;
+		if (guessdepthval == 0x800001)
+			guessdepthval = 1;
 #elif TESTPOWER == 16
 		int guessdepthval = int(testval * 0x1000000);
 		if (guessdepthval < 0x800001)
@@ -659,6 +665,14 @@ void TestDepth() {
 			guessdepthval = 0x800000 - (guessdepthval) / 2;
 		if (guessdepthval == 0x800000)
 			guessdepthval = 1;
+#if 0
+		int guessdepthval = int(testval * 0x1000000);
+		guessdepthval = 0x1000000 - guessdepthval;
+		if (guessdepthval == 0x1000000)
+			guessdepthval = 1;
+		else
+			guessdepthval = int((guessdepthval * 0x7FFFFFLL + 0xFFFFFF) / 0x1000000);
+#endif
 #elif TESTPOWER == 14
 		int guessdepthval = int(testval * 0x1000000);
 		if (guessdepthval < 0x800000)
