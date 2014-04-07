@@ -588,7 +588,7 @@ void TestDepth() {
 		int guessdepthval;
 		if (zrange == 0xFFFFFF && zfar == 0xFFFFFF)
 		{
-			// Tested down to 0x1.p-28 resolution
+			// Tested down to 0x1.p-28 precision
 			int input = int(testval * 0x10000000);
 			if (input < 0x800000)
 				guessdepthval = 0xFFFFFF - (input + 0xB) / 0x10;
@@ -605,7 +605,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0xFFFFFE && zfar == 0xFFFFFE)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x400001)
 				guessdepthval = 0xFFFFFE - input;
@@ -624,7 +624,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x800002 && zfar == 0x800002)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x300001)
 				guessdepthval = 0x800002 - (input + 1) / 2;
@@ -637,7 +637,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x1000000 && zfar == 0x1000000)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x800001)
 				guessdepthval = 0x1000000 - (input);
@@ -646,7 +646,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x800000 && zfar == 0x800000)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x800000 - (input + 1) / 2;
@@ -655,7 +655,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x400000 && zfar == 0x400000)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x400000 - (input + 3) / 4;
@@ -664,7 +664,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x200000 && zfar == 0x200000)
 		{
-			// Tested down to 0x1.p-24 resolution
+			// Tested down to 0x1.p-24 precision
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x200000 - (input + 7) / 8;
@@ -673,7 +673,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0xC00000 && zfar == 0xC00000)
 		{
-			// Tested down to 0x1.p-28 resolution
+			// Tested down to 0x1.p-28 precision
 			int input = int(testval * 0x10000000);
 			if (input <= 0x400000)
 				guessdepthval = 0xC00000 - ((input * 3 + 0x2F) / 0x40);
