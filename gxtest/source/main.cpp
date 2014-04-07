@@ -556,7 +556,7 @@ void TestDepth() {
 		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
 
 		float zrange = test_zranges[cur_range];
-		float zfar = zrange;  // specific cases assume zfar == zrange for simplicity.
+		float zfar = zrange;
 		TestDepth_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, zrange, zfar);
 
 		cc.d = TEVCOLORARG_C0;
@@ -586,7 +586,7 @@ void TestDepth() {
 		int depthval = (result.r << 16) + (result.g << 8) + (result.b << 0);
 
 		int guessdepthval;
-		if (zrange == 0xFFFFFF)
+		if (zrange == 0xFFFFFF && zfar == 0xFFFFFF)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x400001)
@@ -596,7 +596,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0xFFFFFF - input + 2;
 		}
-		else if (zrange == 0xFFFFFE)
+		else if (zrange == 0xFFFFFE && zfar == 0xFFFFFE)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x400001)
@@ -608,12 +608,12 @@ void TestDepth() {
 			else
 				guessdepthval = 0xFFFFFE - input + 3;
 		}
-		else if (zrange == 0x800001)
+		else if (zrange == 0x800001 && zfar == 0x800001)
 		{
 			int input = int(testval * 0x1000000);
 			guessdepthval = 0x800001 - (input + 1) / 2;
 		}
-		else if (zrange == 0x800002)
+		else if (zrange == 0x800002 && zfar == 0x800002)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x300001)
@@ -625,7 +625,7 @@ void TestDepth() {
 			else
 				guessdepthval = 2;
 		}
-		else if (zrange == 0x1000000)
+		else if (zrange == 0x1000000 && zfar == 0x1000000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x800001)
@@ -633,7 +633,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0x1000000 - (input - 1);
 		}
-		else if (zrange == 0x800000)
+		else if (zrange == 0x800000 && zfar == 0x800000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
@@ -641,7 +641,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0x800000 - (input) / 2;
 		}
-		else if (zrange == 0x400000)
+		else if (zrange == 0x400000 && zfar == 0x400000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
@@ -649,7 +649,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0x400000 - (input + 2) / 4;
 		}
-		else if (zrange == 0x200000)
+		else if (zrange == 0x200000 && zfar == 0x200000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
@@ -657,7 +657,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0x200000 - (input + 6) / 8;
 		}
-		else if (zrange == 0xC00000)
+		else if (zrange == 0xC00000 && zfar == 0xC00000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
@@ -671,7 +671,7 @@ void TestDepth() {
 			else
 				guessdepthval = 0xC00000 - (input - (input + 6) / 4);
 		}
-		else if (zrange == 0x600000)
+		else if (zrange == 0x600000 && zfar == 0x600000)
 		{
 			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
@@ -690,6 +690,10 @@ void TestDepth() {
 			// TODO: General case rounds incorrectly
 			guessdepthval = int(-testval * zrange + zfar);
 		}
+		if (guessdepthval < 0)
+			guessdepthval = 0;
+		if (guessdepthval > 0xFFFFFF)
+			guessdepthval = 0xFFFFFF;
 
 		DO_TEST(depthval == guessdepthval, "zrange %d, input %d, guess %d, actual %d\n", int(zrange), int(testval * 0x1000000), guessdepthval, depthval);
 		//network_printf("%10d %10d\n", int(testval * 0x1000000), depthval);
