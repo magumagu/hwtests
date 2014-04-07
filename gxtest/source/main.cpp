@@ -574,8 +574,8 @@ void TestDepth() {
 		GXTest::Quad test_quad;
 		test_quad.ColorRGBA(0xff, 0, 0, 0xff);
 		float testval = testvals[step];
-		//float testval = (step + 1 + 0x400000 - 20) / float(0x1000000);
-		//float testval = (rand() & 0xFFFFFF) / float(0x1000000);
+		//float testval = (step + 1 + 0x800000 - 40) / float(0x1000000) / 16;
+		//float testval = (rand() & 0xFFFFFF) / float(0x1000000) / 16;
 		test_quad.AtDepth(testval);
 
 		test_quad.Draw();
@@ -588,16 +588,24 @@ void TestDepth() {
 		int guessdepthval;
 		if (zrange == 0xFFFFFF && zfar == 0xFFFFFF)
 		{
-			int input = int(testval * 0x1000000);
-			if (input < 0x400001)
-				guessdepthval = 0xFFFFFF - input;
-			else if (input < 0x800002)
-				guessdepthval = 0xFFFFFF - input + 1;
+			// Tested down to 0x1.p-28 resolution
+			int input = int(testval * 0x10000000);
+			if (input < 0x800000)
+				guessdepthval = 0xFFFFFF - (input + 0xB) / 0x10;
+			else if (input < 0x1000000)
+				guessdepthval = 0xFFFFFF - (input + 0xA) / 0x10;
+			else if (input < 0x2000000)
+				guessdepthval = 0xFFFFFF - (input + 0x8) / 0x10;
+			else if (input < 0x4000010)
+				guessdepthval = 0xFFFFFF - (input + 0x4) / 0x10;
+			else if (input < 0x8000020)
+				guessdepthval = 0xFFFFFF - (input - 0x8) / 0x10;
 			else
-				guessdepthval = 0xFFFFFF - input + 2;
+				guessdepthval = 0xFFFFFF - (input - 0x20) / 0x10;
 		}
 		else if (zrange == 0xFFFFFE && zfar == 0xFFFFFE)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x400001)
 				guessdepthval = 0xFFFFFE - input;
@@ -610,11 +618,13 @@ void TestDepth() {
 		}
 		else if (zrange == 0x800001 && zfar == 0x800001)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			guessdepthval = 0x800001 - (input + 1) / 2;
 		}
 		else if (zrange == 0x800002 && zfar == 0x800002)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x300001)
 				guessdepthval = 0x800002 - (input + 1) / 2;
@@ -627,6 +637,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x1000000 && zfar == 0x1000000)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x800001)
 				guessdepthval = 0x1000000 - (input);
@@ -635,6 +646,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x800000 && zfar == 0x800000)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x800000 - (input + 1) / 2;
@@ -643,6 +655,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x400000 && zfar == 0x400000)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x400000 - (input + 3) / 4;
@@ -651,6 +664,7 @@ void TestDepth() {
 		}
 		else if (zrange == 0x200000 && zfar == 0x200000)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input < 0x800000)
 				guessdepthval = 0x200000 - (input + 7) / 8;
@@ -659,20 +673,30 @@ void TestDepth() {
 		}
 		else if (zrange == 0xC00000 && zfar == 0xC00000)
 		{
-			int input = int(testval * 0x1000000);
+			// Tested down to 0x1.p-28 resolution
+			int input = int(testval * 0x10000000);
 			if (input <= 0x400000)
-				guessdepthval = 0xC00000 - (input - (input + 1) / 4);
-			else if (input <= 0x555555)
-				guessdepthval = 0xC00000 - (input - (input + 2) / 4);
+				guessdepthval = 0xC00000 - ((input * 3 + 0x2F) / 0x40);
 			else if (input <= 0x800000)
-				guessdepthval = 0xC00000 - (input - (input + 3) / 4);
-			else if (input <= 0xaaaaab)
-				guessdepthval = 0xC00000 - (input - (input + 4) / 4);
+				guessdepthval = 0xC00000 - ((input * 3 + 0x2E) / 0x40);
+			else if (input <= 0x1000000)
+				guessdepthval = 0xC00000 - ((input * 3 + 0x2D) / 0x40);
+			else if (input <= 0x2000000)
+				guessdepthval = 0xC00000 - ((input * 3 + 0x2A) / 0x40);
+			else if (input <= 0x4000000)
+				guessdepthval = 0xC00000 - ((input * 3 + 0x24) / 0x40);
+			else if (input <= 0x5555550)
+				guessdepthval = 0xC00000 - ((input * 3 + 0x18) / 0x40);
+			else if (input <= 0x8000000)
+				guessdepthval = 0xC00000 - ((input * 3 + 0x8) / 0x40);
+			else if (input <= 0xaaaaab0)
+				guessdepthval = 0xC00000 - ((input * 3 - 0x10) / 0x40);
 			else
-				guessdepthval = 0xC00000 - (input - (input + 6) / 4);
+				guessdepthval = 0xC00000 - ((input * 3 - 0x30) / 0x40);
 		}
 		else if (zrange == 0x600000 && zfar == 0x600000)
 		{
+			// Tested down to 0x1.p-24 resolution
 			int input = int(testval * 0x1000000);
 			if (input <= 0x400000)
 				guessdepthval = 0x600000 - (input - (input * 5 + 1) / 8);
@@ -687,7 +711,8 @@ void TestDepth() {
 		}
 		else
 		{
-			// TODO: General case rounds incorrectly
+			// TODO: General case rounds incorrectly (but always within
+			// 2 ulps of hardware answer).
 			guessdepthval = int(-testval * zrange + zfar);
 		}
 		if (guessdepthval < 0)
@@ -695,7 +720,7 @@ void TestDepth() {
 		if (guessdepthval > 0xFFFFFF)
 			guessdepthval = 0xFFFFFF;
 
-		DO_TEST(depthval == guessdepthval, "zrange %d, input %d, guess %d, actual %d\n", int(zrange), int(testval * 0x1000000), guessdepthval, depthval);
+		DO_TEST(depthval == guessdepthval, "zrange %d, input %f, guess %d, actual %d\n", int(zrange), testval * 0x1000000, guessdepthval, depthval);
 		//network_printf("%10d %10d\n", int(testval * 0x1000000), depthval);
 		GXTest::DebugDisplayEfbContents();
 	}
