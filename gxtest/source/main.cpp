@@ -718,7 +718,7 @@ void TestDepth() {
 
 		int mindepthval, maxdepthval;
 		{
-			// Tested down to 0x1.p-24 precision
+			// Tested down to 0x1.p-24 precision on the test zranges.
 			int input = int(testval * 0x1000000);
 			mindepthval = (-input * (long long)(zrange)+((long long)(zfar) << 24)) >> 24;
 			maxdepthval = (-input * (long long)(zrange)+((long long)(zfar) << 24) + 0x2000000) >> 24;
