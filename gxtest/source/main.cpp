@@ -715,12 +715,23 @@ void TestDepth() {
 			// 2 ulps of hardware answer).
 			guessdepthval = int(-testval * zrange + zfar);
 		}
+
+		int mindepthval, maxdepthval;
+		{
+			// Tested down to 0x1.p-24 precision
+			int input = int(testval * 0x1000000);
+			mindepthval = (-input * (long long)(zrange)+((long long)(zfar) << 24)) >> 24;
+			maxdepthval = (-input * (long long)(zrange)+((long long)(zfar) << 24) + 0x2000000) >> 24;
+		}
+
 		if (guessdepthval < 0)
 			guessdepthval = 0;
 		if (guessdepthval > 0xFFFFFF)
 			guessdepthval = 0xFFFFFF;
 
 		DO_TEST(depthval == guessdepthval, "zrange %d, input %f, guess %d, actual %d\n", int(zrange), testval * 0x1000000, guessdepthval, depthval);
+		DO_TEST(depthval >= mindepthval, "zrange %d, input %f, guess %d, actual %d\n", int(zrange), testval * 0x1000000, guessdepthval, depthval);
+		DO_TEST(depthval <= maxdepthval, "zrange %d, input %f, guess %d, actual %d\n", int(zrange), testval * 0x1000000, guessdepthval, depthval);
 		//network_printf("%10d %10d\n", int(testval * 0x1000000), depthval);
 		GXTest::DebugDisplayEfbContents();
 	}
