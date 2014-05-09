@@ -464,19 +464,165 @@ void ClipTest()
 	END_TEST();
 }
 
+void footest() {
+	//START_TEST();
+
+	CGX_LOAD_BP_REG(CGXDefault<TwoTevStageOrders>(0).hex);
+
+	CGX_BEGIN_LOAD_XF_REGS(0x1009, 1);
+	wgPipe->U32 = 1; // 1 color channel
+
+	LitChannel chan;
+	chan.hex = 0;
+	chan.matsource = 1; // from vertex
+	CGX_BEGIN_LOAD_XF_REGS(0x100e, 1); // color channel 1
+	wgPipe->U32 = chan.hex;
+	CGX_BEGIN_LOAD_XF_REGS(0x1010, 1); // alpha channel 1
+	wgPipe->U32 = chan.hex;
+
+	CGX_LOAD_BP_REG(CGXDefault<TevStageCombiner::AlphaCombiner>(0).hex);
+
+	auto genmode = CGXDefault<GenMode>();
+	genmode.numtevstages = 0; // One stage
+	CGX_LOAD_BP_REG(genmode.hex);
+
+	PE_CONTROL ctrl;
+	ctrl.hex = BPMEM_ZCOMPARE << 24;
+	ctrl.pixel_format = PIXELFMT_RGB8_Z24;
+	ctrl.zformat = ZC_LINEAR;
+	ctrl.early_ztest = 0;
+	CGX_LOAD_BP_REG(ctrl.hex);
+
+	{
+		auto zmode = CGXDefault<ZMode>();
+		CGX_LOAD_BP_REG(zmode.hex);
+
+		// First off, clear previous screen contents
+		CGX_SetViewport(0.0f, 0.0f, 601.0f, 400.0f, 0.0f, 1.0f); // stuff which really should not be filled
+		auto cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
+		cc.d = TEVCOLORARG_RASC;
+		CGX_LOAD_BP_REG(cc.hex);
+		GXTest::Quad().ColorRGBA(0, 0, 0, 0xff).Draw();
+
+		{
+			VAT vtxattr;
+			vtxattr.g0.Hex = 0;
+			vtxattr.g1.Hex = 0;
+			vtxattr.g2.Hex = 0;
+
+			vtxattr.g0.PosElements = VA_TYPE_POS_XYZ;
+			vtxattr.g0.PosFormat = VA_FMT_F32;
+
+			vtxattr.g0.Color0Elements = VA_TYPE_CLR_RGBA;
+			vtxattr.g0.Color0Comp = VA_FMT_RGBA8;
+
+			// TODO: Figure out what this does and why it needs to be 1 for Dolphin not to error out
+			vtxattr.g0.ByteDequant = 1;
+
+			TVtxDesc vtxdesc;
+			vtxdesc.Hex = 0;
+			vtxdesc.Position = VTXATTR_DIRECT;
+
+			vtxdesc.Color0 = VTXATTR_DIRECT;
+
+			// TODO: Not sure if the order of these two is correct
+			CGX_LOAD_CP_REG(0x50, vtxdesc.Hex0);
+			CGX_LOAD_CP_REG(0x60, vtxdesc.Hex1);
+
+			CGX_LOAD_CP_REG(0x70, vtxattr.g0.Hex);
+			CGX_LOAD_CP_REG(0x80, vtxattr.g1.Hex);
+			CGX_LOAD_CP_REG(0x90, vtxattr.g2.Hex);
+
+			float mtx[4][4];
+			memset(mtx, 0, sizeof(mtx));
+			mtx[0][0] = 1;
+			mtx[1][1] = 1;
+			mtx[2][2] = -1;
+			CGX_LoadProjectionMatrixOrthographic(mtx);
+
+			wgPipe->U8 = 0x88; // draw quads
+			wgPipe->U16 = 8; // 4 vertices
+
+			wgPipe->F32 = 0;
+			wgPipe->F32 = 0;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0xFF00FFFF;
+
+			wgPipe->F32 = 1;
+			wgPipe->F32 = 0;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0xFF00FFFF;
+
+			wgPipe->F32 = 1;
+			wgPipe->F32 = 1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0xFF00FFFF;
+
+			wgPipe->F32 = 0;
+			wgPipe->F32 = 1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0xFF00FFFF;
+
+			wgPipe->F32 = 0-1;
+			wgPipe->F32 = 0-1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0x00FFFFFF;
+
+			wgPipe->F32 = 1-1;
+			wgPipe->F32 = 0-1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0x00FFFFFF;
+
+			wgPipe->F32 = 1-1;
+			wgPipe->F32 = 1-1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0x00FFFFFF;
+
+			wgPipe->F32 = 0-1;
+			wgPipe->F32 = 1-1;
+			wgPipe->F32 = 1;
+			wgPipe->U32 = 0x00FFFFFF;
+		}
+		//GXTest::Quad().ColorRGBA(0xFF, 0xFF, 0xFF, 0xff).VertexTopLeft(0,0,0).VertexTopRight(1,0,0).VertexBottomLeft(0,1,0).Draw();
+#if 0
+		CGX_SetViewport(75.0f, 0.0f, 100.0f, 50.0f, 0.0f, 1.0f); // guardband
+		cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
+		cc.d = TEVCOLORARG_RASC;
+		CGX_LOAD_BP_REG(cc.hex);
+		GXTest::Quad().ColorRGBA(0, 0x7f, 0, 0xff).Draw();
+
+		CGX_SetViewport(100.0f, 0.0f, 50.0f, 50.0f, 0.0f, 1.0f); // viewport
+		cc = CGXDefault<TevStageCombiner::ColorCombiner>(0);
+		cc.d = TEVCOLORARG_RASC;
+		CGX_LOAD_BP_REG(cc.hex);
+		GXTest::Quad().ColorRGBA(0, 0xff, 0, 0xff).Draw();
+#endif
+		GXTest::CopyToTestBuffer(0, 0, 199, 49);
+		CGX_WaitForGpuToFinish();
+
+		GXTest::DebugDisplayEfbContents();
+	}
+
+	//END_TEST();
+}
+
 int main()
 {
-	network_init();
+	//network_init();
 	WPAD_Init();
 
 	GXTest::Init();
 
-	BitfieldTest();
-	TevCombinerTest();
-	ClipTest();
+	//BitfieldTest();
+	//TevCombinerTest();
+	//ClipTest();
+	footest();
 
-	network_printf("Shutting down...\n");
-	network_shutdown();
+	volatile int x;
+	while (++x < 10000) {}
+
+	//network_printf("Shutting down...\n");
+	//network_shutdown();
 
 	return 0;
 }

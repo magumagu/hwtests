@@ -11,7 +11,7 @@
 #include "cgx_defaults.h"
 #include "gxtest_util.h"
 
-//#define ENABLE_DEBUG_DISPLAY
+#define ENABLE_DEBUG_DISPLAY
 
 namespace GXTest
 {
