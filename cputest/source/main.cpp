@@ -194,12 +194,29 @@ void ReciprocalTest()
 	END_TEST();
 }
 
+void FloatPrecisionTest()
+{
+	START_TEST();
+	double a = 0x1.FFFFFFFFFFFFFp-2;
+	double b = 0x1.p23 + 1;
+	DO_TEST(0x1.p23f != (0x1.p23f + 1), "a", 0);
+	DO_TEST(0x1.p24f == (0x1.p24f + 1), "a", 0);
+	DO_TEST(a < 0.5, "a", 0);
+	__asm__("fadds %0,%1,%2"
+		: "=f" (estimate)
+		: "f" (a), "f" (b));
+	DO_TEST(estimate == b, "%f %f %f", a, b, estimate);
+	DO_TEST(float(a+b) == b + 1, "%f %f %f", a, b, estimate);
+	END_TEST();
+}
+
 int main()
 {
 	network_init();
 	WPAD_Init();
 
 	ReciprocalTest();
+	FloatPrecisionTest();
 
 	network_printf("Shutting down...\n");
 	network_shutdown();
