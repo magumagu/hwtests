@@ -258,31 +258,34 @@ void AddSingleTest()
 		double a;
 		double b;
 		double result;
+		unsigned int flags;
 	};
 	test_elem tests[] = {
-		{ 1, 1, 2 },
-		{ 3, 3, 6 },
-		{ 3, -2.5, 0.5 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.p23 + 1, 0x1.p23 + 1 },
-		{ 0x0.FFFFFFp-127, 0, 0x1p-127 },
-		{ 0x0.FFFFFFp-126, 0, 0x1p-126 },
-		{ 0x0.FFFFFFp-125, 0, 0x0.FFFFFFp-125 },
-		{ 1, -1, 0 },
-		{ -1, 1, 0 },
-		{ 0, -0x1.p-1024, -0. },
-		{ 0x1p0, 0x1.p-24, 1 },
-		{ 0x1.FFFFFEp0, 0x1.p-24, 2 },
-		{ 0x1p126, 0x1p126, 0x1p127 },
-		{ 0x1p127, 0x1p127, std::numeric_limits<double>::infinity() },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0") },
-		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000") },
-		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000") },
-		{ 0, -0., 0 },
-		{ 0, 0, 0 },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0") },
-		{ 0x0.FFFFFFp-125, 0, 0x0.FFFFFFp-125 },
-		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000") },
-		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000") },
+		{ 1, 1, 2, 0x4000 },
+		{ 3, 3, 6, 0x4000 },
+		{ 3, -2.5, 0.5, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.p23 + 1, 0x1.p23 + 1, 0x82024000 },
+		{ 0x0.FFFFFFp-127, 0, 0x1p-127, 0x8a074000 },
+		{ 0x0.FFFFFFp-126, 0, 0x1p-126, 0x8a064000 },
+		{ 0x0.FFFFFFp-125, 0, 0x0.FFFFFFp-125, 0x4000 },
+		{ 1, -1, 0, 0x2000 },
+		{ -1, 1, 0, 0x2000 },
+		{ 0, -0x1.p-1024, -0., 0x8a032000 },
+		{ 0x1p0, 0x1.p-24, 1, 0x82024000 },
+		{ 0x1.FFFFFEp0, 0x1.p-24, 2, 0x82064000 },
+		{ 0x1p126, 0x1p126, 0x1p127, 0x4000 },
+		{ 0x1p127, 0x1p127, std::numeric_limits<double>::infinity(), 0x92025000 },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0"), 0x11000 },
+		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000"), 0x11000 },
+		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000"), 0x11000 },
+		{ 0, -0., 0, 0x2000 },
+		{ 1, 0x1p-256, 1, 0x82024000 },
+		{ 0, 0, 0, 0x2000 },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0"), 0x11000 },
+		{ 0x0.FFFFFFp-125, 0, 0x0.FFFFFFp-125, 0x4000 },
+		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000"), 0x11000 },
+		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000"), 0x11000 },
+		{ -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN(), 0xa0811000 }
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -290,14 +293,16 @@ void AddSingleTest()
 		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
 			asm volatile("mtfsb1 29");
 
-		double result;
-		__asm__("fadds %0,%1,%2"
-			: "=f" (result)
-			: "f" (tests[i].a), "f" (tests[i].b));
-		long long x[4];
+		double result, flags;
+		__asm__("mtfsf 252, %4\nfadds %0,%2,%3\nmffs %1"
+			: "=f" (result), "=f"(flags)
+			: "f" (tests[i].a), "f" (tests[i].b), "f"(0.));
+		long long x[5];
 		memcpy(x, &tests[i], 24);
 		memcpy(&x[3], &result, 8);
+		memcpy(&x[4], &flags, 8);
 		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fadds %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+		DO_TEST((x[4] & 0xFFFFFF00) == tests[i].flags, "fadds flags %x %llx", tests[i].flags, x[4]);
 	}
 	END_TEST();
 }
@@ -311,14 +316,15 @@ void AddDoubleTest()
 		double a;
 		double b;
 		double result;
+		unsigned int flags;
 	};
 	test_elem tests[] = {
-		{ 0x1p-1023, 0x1p-1023, 0x1p-1022 },
-		{ 0x1p-1024, 0x1p-1024, 0x1p-1023 },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1") },
-		{ 0, 0, 0 },
-		{ 0x1p-1023, 0x1p-1023, 0x1p-1022 },
-		{ 0x1p-1024, 0x1p-1024, 0 },
+		{ 0x1p-1023, 0x1p-1023, 0x1p-1022, 0x4000 },
+		{ 0x1p-1024, 0x1p-1024, 0x1p-1023, 0x14000 },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1"), 0x11000 },
+		{ 0, 0, 0, 0x2000 },
+		{ 0x1p-1023, 0x1p-1023, 0x1p-1022, 0x4000 },
+		{ 0x1p-1024, 0x1p-1024, 0, 0x2000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -326,14 +332,16 @@ void AddDoubleTest()
 		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
 			asm volatile("mtfsb1 29");
 
-		double result;
-		__asm__("fadd %0,%1,%2"
-			: "=f" (result)
-			: "f" (tests[i].a), "f" (tests[i].b));
-		long long x[4];
+		double result, flags;
+		__asm__("mtfsf 252, %4\nfadd %0,%2,%3\nmffs %1"
+			: "=f" (result), "=f"(flags)
+			: "f" (tests[i].a), "f" (tests[i].b), "f"(0.));
+		long long x[5];
 		memcpy(x, &tests[i], 24);
 		memcpy(&x[3], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fadd %016llx %016llx %016llx %016llx", x[0], x[1], x[2], x[3]);
+		memcpy(&x[4], &flags, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fadd %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+		DO_TEST((x[4] & 0xFFFFFF00) == tests[i].flags, "fadd flags %x %llx", tests[i].flags, x[4]);
 	}
 	END_TEST();
 }
