@@ -274,12 +274,15 @@ void AddSingleTest()
 		{ 0x1.FFFFFEp0, 0x1.p-24, 2 },
 		{ 0x1p126, 0x1p126, 0x1p127 },
 		{ 0x1p127, 0x1p127, std::numeric_limits<double>::infinity() },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1") },
-		{ -1, __builtin_nan("2"), __builtin_nan("2") },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0") },
+		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000") },
+		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000") },
+		{ 0, -0., 0 },
 		{ 0, 0, 0 },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("0") },
 		{ 0x0.FFFFFFp-125, 0, 0x0.FFFFFFp-125 },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1") },
-		{ -1, __builtin_nan("2"), __builtin_nan("2") },
+		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000") },
+		{ -1, __builtin_nan("0x200000000"), __builtin_nan("0x200000000") },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -294,7 +297,43 @@ void AddSingleTest()
 		long long x[4];
 		memcpy(x, &tests[i], 24);
 		memcpy(&x[3], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "%llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fadds %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+	}
+	END_TEST();
+}
+
+void AddDoubleTest()
+{
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double result;
+	};
+	test_elem tests[] = {
+		{ 0x1p-1023, 0x1p-1023, 0x1p-1022 },
+		{ 0x1p-1024, 0x1p-1024, 0x1p-1023 },
+		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1") },
+		{ 0, 0, 0 },
+		{ 0x1p-1023, 0x1p-1023, 0x1p-1022 },
+		{ 0x1p-1024, 0x1p-1024, 0 },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result;
+		__asm__("fadd %0,%1,%2"
+			: "=f" (result)
+			: "f" (tests[i].a), "f" (tests[i].b));
+		long long x[4];
+		memcpy(x, &tests[i], 24);
+		memcpy(&x[3], &result, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fadd %016llx %016llx %016llx %016llx", x[0], x[1], x[2], x[3]);
 	}
 	END_TEST();
 }
@@ -315,7 +354,7 @@ void SubSingleTest()
 		{ 3, 2.5, 0.5 },
 		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN() },
 		{ 0, 0, 0 },
-		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("1") },
+		{ __builtin_nan("0x100000000"), __builtin_nan("0x200000000"), __builtin_nan("0x100000000") },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -330,7 +369,44 @@ void SubSingleTest()
 		long long x[4];
 		memcpy(x, &tests[i], 24);
 		memcpy(&x[3], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "%llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fsubs %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+	}
+	END_TEST();
+}
+
+void MulDoubleTest()
+{
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double result;
+	};
+	test_elem tests[] = {
+		{ 2, 1, 2 },
+		{ 33, 11, 363 },
+		{ 4134341, 814193264, 4134341. * 814193264 },
+		{ 10, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() },
+		{ 0x1p1022, 0x1p-1030, 0x1p-8 },
+		{ 0, 0, 0 },
+		{ 0x1p1022, 0x1p-1030, 0x1p-8 },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result;
+		__asm__("fmul %0,%1,%2"
+			: "=f" (result)
+			: "f" (tests[i].a), "f" (tests[i].b));
+		long long x[4];
+		memcpy(x, &tests[i], 24);
+		memcpy(&x[3], &result, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fmul %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
 	}
 	END_TEST();
 }
@@ -366,7 +442,7 @@ void DivDoubleTest()
 		long long x[4];
 		memcpy(x, &tests[i], 24);
 		memcpy(&x[3], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "%llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fdiv %llx %llx %llx %llx", x[0], x[1], x[2], x[3]);
 	}
 	END_TEST();
 }
@@ -389,7 +465,7 @@ void MaddSingleTest()
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
 		long long zero = 0;
-		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
 			asm volatile("mtfsb1 29");
 
 		double result;
@@ -399,7 +475,7 @@ void MaddSingleTest()
 		long long x[5];
 		memcpy(x, &tests[i], 32);
 		memcpy(&x[4], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "%llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fmadds %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
 	}
 	END_TEST();
 }
@@ -431,10 +507,11 @@ void MaddDoubleTest()
 		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("3"), __builtin_nan("1") },
 		{ -1, __builtin_nan("2"), __builtin_nan("3"), __builtin_nan("3") },
 		{ -1, __builtin_nan("2"), -1, __builtin_nan("2") },
+		{ std::numeric_limits<double>::infinity(), 0, 1, std::numeric_limits<double>::quiet_NaN() },
 		{ 0, 0, 0, 0 },
 		{ 0x1.FFFFFFFFFFFFFp-1023, 1, 0, 0x1.FFFFFFFFFFFFFp-1023 },
 		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0 },
-		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x1p-5 },
+		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9 },
 		{ __builtin_nan("1"), __builtin_nan("2"), __builtin_nan("3"), __builtin_nan("1") },
 		{ -1, __builtin_nan("2"), __builtin_nan("3"), __builtin_nan("3") },
 		{ -1, __builtin_nan("2"), -1, __builtin_nan("2") },
@@ -442,7 +519,7 @@ void MaddDoubleTest()
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
 		long long zero = 0;
-		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0)
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
 			asm volatile("mtfsb1 29");
 
 		double result;
@@ -452,7 +529,112 @@ void MaddDoubleTest()
 		long long x[5];
 		memcpy(x, &tests[i], 32);
 		memcpy(&x[4], &result, 8);
-		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "%llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fmadd %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+	}
+	END_TEST();
+}
+
+void MsubDoubleTest()
+{
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double c;
+		double result;
+	};
+	test_elem tests[] = {
+		{ 1, 1, 1, 0 },
+		{ 3, 3, 10, -1 },
+		{ 0, 0, 0, 0 },
+		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN() },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result;
+		__asm__("fmsub %0,%1,%2,%3"
+			: "=f" (result)
+			: "f" (tests[i].a), "f" (tests[i].b), "f" (tests[i].c));
+		long long x[5];
+		memcpy(x, &tests[i], 32);
+		memcpy(&x[4], &result, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fmsub %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+	}
+	END_TEST();
+}
+
+void NMaddDoubleTest()
+{
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double c;
+		double result;
+	};
+	test_elem tests[] = {
+		{ 1, 1, -1, -0. },
+		{ 3, 3, 10, -19 },
+		{ 0, 0, 0, -0. },
+		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity() },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result;
+		__asm__("fnmadd %0,%1,%2,%3"
+			: "=f" (result)
+			: "f" (tests[i].a), "f" (tests[i].b), "f" (tests[i].c));
+		long long x[5];
+		memcpy(x, &tests[i], 32);
+		memcpy(&x[4], &result, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fnmadd %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+	}
+	END_TEST();
+}
+
+void NMsubDoubleTest()
+{
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double c;
+		double result;
+	};
+	test_elem tests[] = {
+		{ 1, 1, 1, -0. },
+		{ 3, 3, 10, 1 },
+		{ 0, 0, 0, -0. },
+		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN() },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result;
+		__asm__("fnmsub %0,%1,%2,%3"
+			: "=f" (result)
+			: "f" (tests[i].a), "f" (tests[i].b), "f" (tests[i].c));
+		long long x[5];
+		memcpy(x, &tests[i], 32);
+		memcpy(&x[4], &result, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fnmsub %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
 	}
 	END_TEST();
 }
@@ -466,10 +648,15 @@ int main()
 	//FloatPrecisionTest();
 	//IntConversionTest();
 	AddSingleTest();
+	AddDoubleTest();
 	SubSingleTest();
+	MulDoubleTest();
 	DivDoubleTest();
 	MaddSingleTest();
 	MaddDoubleTest();
+	MsubDoubleTest();
+	NMaddDoubleTest();
+	NMsubDoubleTest();
 
 	network_printf("Shutting down...\n");
 	network_shutdown();
