@@ -673,7 +673,9 @@ void NMsubDoubleTest()
 
 void MaddRoundInf()
 {
+	// Test round-towards-infinity
 	asm volatile("mtfsb1 30");
+
 	START_TEST();
 	asm volatile("mtfsb0 29");
 	struct test_elem
