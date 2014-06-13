@@ -541,11 +541,24 @@ void MaddSingleTest()
 		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-54, 0x82024000 },
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
+		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.a4p-101, 0x4000 },
+		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
+
+		// Test inf/nan
+		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
+		{ 0x1.p1023, 0x1.p1023, -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
+		{ 0x1.p1023, 0x1.p1023, 0, std::numeric_limits<double>::infinity(), 0x92025000 },
+		{ std::numeric_limits<double>::infinity(), 0, 1, std::numeric_limits<double>::quiet_NaN(), 0xa0111000 },
 
 		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
 
 		{ 0x0.FFFFFFp-125, .5, 0, 0, 0x8a022000 },
+		{ 0x1.FFFFFEp-127, 1, 0, 0, 0x8a022000 },
+		{ 0x1.FFFFFEp-127, 2, 0, 0x1.FFFFFEp-126, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0, 0x8a022000 },
+		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9, 0x4000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -586,19 +599,20 @@ void MaddPackedSingleTest()
 		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9, 0x4000 },
 		{ 0x1.FFFFFFp-2, 0x1.FFFFFFp-2, 0x1.FFFFFFp-56, 0x1.FFFFFEp-3, 0x82024000 },
 		{ 32037420837423, 3847239847, 6293592245, (float)(32037420837423. * 3847239847 + 6293592245), 0x82024000 },
-		{ 0x1.FFFFFFp-2, 0x1.FFFFFFp-2, 0x1.FFFFFFFp-55, 0x1p-2, 0x82064000 },
-		{ 0x1.FFFFFFp-2, 0x1.FFFFFFp-2, 0x1.FFFFFFp-200, 0x1.FFFFEp-3, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFFp-200, 0x1.FFFFFFFFFFFFDp-3, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFFp-57, 0x1.FFFFFFFFFFFFEp-3, 0x82064000 },
+		//{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFFp-57, 0x1.FFFFFFFFFFFFEp-3, 0x82064000 },
 		{ 1, 0x1.FFFFFFFFFFFFFp-3, -0x1.FFFFFFFFFFFFDp-3, 0x1p-54, 0x4000 },
 
 		// madd precision test.
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, /*0x1.p-107*/0x1p-54, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, /*0x1.p-107*/0x1.8p-54, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-53, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1.p-54, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1.p-54, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, /*0x1.p-107*/0x1p-54, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, /*0x1.p-107*/0x1.8p-54, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-53, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
+		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.p-55, 0x82024000 },
+		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 
+		// Test inf/nan
 		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
 		{ 0x1.p1023, 0x1.p1023, -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
 		{ 0x1.p1023, 0x1.p1023, 0, std::numeric_limits<double>::infinity(), 0x92025000 },
@@ -607,7 +621,8 @@ void MaddPackedSingleTest()
 		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
 
-		{ 0x1.FFFFFFp-126, 1, 0, 0x1.FFFFFFp-126, 0x4000 },
+		{ 0x1.FFFFFEp-127, 1, 0, 0, 0x8a022000 },
+		{ 0x1.FFFFFEp-127, 2, 0, 0x1.FFFFFEp-126, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0, 0x8a022000 },
 		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9, 0x4000 },
 	};
@@ -626,7 +641,7 @@ void MaddPackedSingleTest()
 		memcpy(&x[4], &result, 8);
 		memcpy(&x[5], &flags, 8);
 		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "ps_madd %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
-		//DO_TEST((x[5] & 0xFFFFFF00) == tests[i].flags, "ps_madd flags %x %llx", tests[i].flags, x[5]);
+		DO_TEST((x[5] & 0xFFFFFF00) == tests[i].flags, "ps_madd flags %x %llx", tests[i].flags, x[5]);
 	}
 	END_TEST();
 }
@@ -672,6 +687,9 @@ void MaddDoubleTest()
 		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-54, 0x82024000 },
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
+		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.a4p-101, 0x4000 },
+		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 
 		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
