@@ -542,6 +542,7 @@ void MaddSingleTest()
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
 		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.a4p-101, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, /*0x1.p-107*/0x1p-108, 0x4000 },
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
 		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 
@@ -603,14 +604,15 @@ void MaddPackedSingleTest()
 		{ 1, 0x1.FFFFFFFFFFFFFp-3, -0x1.FFFFFFFFFFFFDp-3, 0x1p-54, 0x4000 },
 
 		// madd precision test.
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, /*0x1.p-107*/0x1p-54, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, /*0x1.p-107*/0x1.8p-54, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-53, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-54, 0x82024000 }, // value verified
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, 0x1.8p-54, 0x82024000 }, // value verified
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, 0x1p-53, 0x82024000 }, // value verified
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, 0x1p-53, 0x4000 }, // value verified
+		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, 0x1p-52, 0x4000 }, // value verified
 		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.p-55, 0x82024000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, /*0x1.p-107*/0x1.p-54, 0x82024000 },
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
-		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-54, 0x82024000 },
 
 		// Test inf/nan
 		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
@@ -688,6 +690,7 @@ void MaddDoubleTest()
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
 		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.a4p-101, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, /*0x1.p-107*/0x1p-108, 0x4000 },
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
 		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 
@@ -912,6 +915,29 @@ int main()
 	NMaddDoubleTest();
 	NMsubDoubleTest();
 	MaddRoundInf();
+
+	static_assert(RAND_MAX == 0x7FFFFFFF, "");
+	do
+	{
+		int alow = rand();
+		int ahigh = rand();
+		int blow = rand();
+		int bhigh = rand();
+		union { double ad; u64 ai; };
+		union { double bd; u64 bi; };
+		union { double dd; u64 di; };
+		union { double sd; u64 si; };
+		ai = ((alow | (ahigh << 31)) & 0xFFFFFFFFFFFFFULL) | 0x3ff0000000000000;
+		bi = ((blow | (bhigh << 31)) & 0xFFFFFFFFFFFFFULL) | 0x3ff0000000000000;
+		__asm__("fmul %0,%2,%3\n" "fmuls %1,%2,%3\n" "frsp %0,%0\n"
+			: "=&f" (dd), "=&f"(sd)
+			: "f" (ad), "f" (bd));
+		if (di != si)
+		{
+			network_printf("Found %llx %llx %llx %llx.\n", ai, bi, di, si);
+			break;
+		}
+	} while (1);
 
 	network_printf("Shutting down...\n");
 	network_shutdown();
