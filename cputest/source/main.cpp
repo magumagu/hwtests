@@ -542,7 +542,9 @@ void MaddSingleTest()
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
 
+		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
+
 		{ 0x0.FFFFFFp-125, .5, 0, 0, 0x8a022000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
@@ -601,7 +603,10 @@ void MaddPackedSingleTest()
 		{ 0x1.p1023, 0x1.p1023, -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
 		{ 0x1.p1023, 0x1.p1023, 0, std::numeric_limits<double>::infinity(), 0x92025000 },
 		{ std::numeric_limits<double>::infinity(), 0, 1, std::numeric_limits<double>::quiet_NaN(), 0xa0111000 },
+
+		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
+
 		{ 0x1.FFFFFFp-126, 1, 0, 0x1.FFFFFFp-126, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0, 0x8a022000 },
 		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9, 0x4000 },
@@ -716,7 +721,10 @@ void MsubDoubleTest()
 	test_elem tests[] = {
 		{ 1, 1, 1, 0, 0x2000 },
 		{ 3, 3, 10, -1, 0x8000 },
+
+		// Switch to non-IEEE
 		{ 0, 0, 0, 0, 0x2000 },
+
 		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN(), 0xa0811000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
@@ -754,7 +762,10 @@ void NMaddDoubleTest()
 	test_elem tests[] = {
 		{ 1, 1, -1, -0., 0x12000 },
 		{ 3, 3, 10, -19, 0x8000 },
+
+		// Switch to non-IEEE
 		{ 0, 0, 0, -0., 0x12000 },
+
 		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
@@ -792,7 +803,10 @@ void NMsubDoubleTest()
 	test_elem tests[] = {
 		{ 1, 1, 1, -0., 0x12000 },
 		{ 3, 3, 10, 1, 0x4000 },
+
+		// Switch to non-IEEE
 		{ 0, 0, 0, -0., 0x12000 },
+
 		{ std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN(), 0xa0811000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
@@ -832,7 +846,10 @@ void MaddRoundInf()
 	};
 	test_elem tests[] = {
 		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0x1p-1023, 0x14000 },
+
+		// Switch to non-IEEE
 		{ 0, 0, 0, 0., 0x2000 },
+
 		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0, 0x8a022000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
