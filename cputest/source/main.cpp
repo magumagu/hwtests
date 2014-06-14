@@ -458,6 +458,8 @@ void MulSingleTest()
 		{ 2, 1, 2, 0x4000 },
 		{ 33, 11, 363, 0x4000 },
 		{ 0x1.fffffe66d9716p0, 0x1.000006931589dp0, 0x1.000006p1, 0x82024000 },
+		// 3ff0000030705b04 3ff000001a8b7f78 3ff0000040000000 3ff0000060000000
+		{ 0x1.0000030705b04p0, 0x1.000001a8b7f78p0, 0x1.000006p0, 0x82064000 },
 	};
 	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
 	{
@@ -496,6 +498,7 @@ void MulDoubleTest()
 		{ 4134341, 814193264, 4134341. * 814193264, 0x4000 },
 		{ 10, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), 0x5000 },
 		{ 0x1p1022, 0x1p-1030, 0x1p-8, 0x4000 },
+		{ 0x1.0000030705b04p0, 0x1.000001a8b7f78p0, 0x1.000004afbdaccp0, 0x82024000 },
 		{ 0, 0, 0, 0x2000 },
 		{ 0x1p1022, 0x1p-1030, 0x1p-8, 0x4000 },
 	};
@@ -579,9 +582,10 @@ void MaddSingleTest()
 		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, 0x1p-52, 0x4000 },
 		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, -0x1.Cp-53, 0x4000 },
 		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, -0x1p-56, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000001p-4, 0x0, 0x4000 },
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
-		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, -0x1p-56, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFEp-3, 0x1p-55, 0x8000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
 
 		// Test inf/nan
 		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
@@ -722,13 +726,13 @@ void MaddDoubleTest()
 		{ std::numeric_limits<double>::infinity(), 0, 1, std::numeric_limits<double>::quiet_NaN(), 0xa0111000 },
 
 		// madd precision test.
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, /*0x1.p-107*/0x1p-107, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, /*0x1.p-107*/0x1.0000000000001p-55, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, /*0x1.p-107*/0x1p-54, 0x82024000 },
-		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, /*0x1.p-107*/0x1p-105, 0x4000 },
-		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, /*0x1.p-107*/0x1p-103, 0x4000 },
-		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, /*0x1.p-107*/0x1.a4p-101, 0x4000 },
-		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, /*0x1.p-107*/0x1p-108, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-107, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, 0x1.0000000000001p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, 0x1p-54, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, 0x1p-105, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, 0x1p-103, 0x4000 },
+		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, 0x1.a4p-101, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
 		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, 0x1p-108, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFEp-3, -0x1.ffffffffffffep-56, 0x8000 },
@@ -930,6 +934,71 @@ void MaddRoundInf()
 		DO_TEST((x[5] & 0xFFFFFF00) == tests[i].flags, "fmadd inf flags %x %llx", tests[i].flags, x[5]);
 	}
 	END_TEST();
+	asm volatile("mtfsb0 30");
+}
+
+void MaddSingleRoundInf()
+{
+	// Test round-towards-infinity
+	asm volatile("mtfsb1 30");
+
+	START_TEST();
+	asm volatile("mtfsb0 29");
+	struct test_elem
+	{
+		double a;
+		double b;
+		double c;
+		double result;
+		unsigned int flags;
+	};
+	test_elem tests[] = {
+		// madd precision test.
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-54, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFCp-3, 0x1.8p-54, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFBp-3, 0x1p-53, 0x82024000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFCp-2, -0x1.FFFFFFFFFFFFAp-3, 0x1p-53, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFCp-2, 0x1.FFFFFFFFFFFF8p-2, -0x1.FFFFFFFFFFFF4p-3, 0x1p-52, 0x4000 },
+		{ 0x1.000000000000Fp-2, 0x1.000000000000Ep-2, -0x1.000000000001Dp-4, -0x1.Cp-53, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000002p-4, -0x1p-56, 0x4000 },
+		{ 0x1.0000000000001p-2, 0x1.0000000000001p-2, -0x1.0000000000001p-4, 0, 0x4000 },
+		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFEp-3, 0x1p-55, 0x8000 },
+
+		// Test inf/nan
+		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
+		{ 0x1.p1023, 0x1.p1023, -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
+		{ 0x1.p1023, 0x1.p1023, 0, std::numeric_limits<double>::infinity(), 0x92025000 },
+		{ std::numeric_limits<double>::infinity(), 0, 1, std::numeric_limits<double>::quiet_NaN(), 0xa0111000 },
+
+		// Switch to non-IEEE
+		{ 0, 0, 0, 0, 0x2000 },
+
+		{ 0x0.FFFFFFp-125, .5, 0, 0, 0x8a022000 },
+		{ 0x1.FFFFFEp-127, 1, 0, 0, 0x8a022000 },
+		{ 0x1.FFFFFEp-127, 2, 0, 0x1.FFFFFEp-126, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFFp-1023, .5, 0, 0, 0x8a022000 },
+		{ 0x1p1022, 0x1p-1030, 0x1p-5, 0x12p-9, 0x4000 },
+	};
+	for (unsigned i = 0; i < sizeof(tests) / sizeof(test_elem); ++i)
+	{
+		long long zero = 0;
+		if (memcmp(&tests[i].a, &zero, 8) == 0 && memcmp(&tests[i].b, &zero, 8) == 0 && memcmp(&tests[i].c, &zero, 8) == 0)
+			asm volatile("mtfsb1 29");
+
+		double result, flags;
+		__asm__("mtfsf 252, %5\nfmadds %0,%2,%3,%4\nmffs %1"
+			: "=f" (result), "=f"(flags)
+			: "f" (tests[i].a), "f" (tests[i].b), "f" (tests[i].c), "f"(0.));
+		long long x[6];
+		memcpy(x, &tests[i], 32);
+		memcpy(&x[4], &result, 8);
+		memcpy(&x[5], &flags, 8);
+		DO_TEST(memcmp(&result, &tests[i].result, 8) == 0, "fmadds %llx %llx %llx %llx %llx", x[0], x[1], x[2], x[3], x[4]);
+		//DO_TEST((x[5] & 0xFFFFFF00) == tests[i].flags, "fmadds flags %x %llx", tests[i].flags, x[5]);
+	}
+	END_TEST();
+	asm volatile("mtfsb0 30");
 }
 
 int main()
@@ -955,6 +1024,7 @@ int main()
 	NMaddDoubleTest();
 	NMsubDoubleTest();
 	MaddRoundInf();
+	MaddSingleRoundInf();
 
 	static_assert(RAND_MAX == 0x7FFFFFFF, "");
 	if (0)
