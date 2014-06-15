@@ -586,6 +586,14 @@ void MaddSingleTest()
 		{ 0x1.FFFFFEp-2, 0x1.FFFFFEp-2, -0x1.FFFFFCp-3, 0x1p-50, 0x4000 },
 		{ 0x1.FFFFFFFFFFFFFp-2, 0x1.FFFFFFFFFFFFEp-2, -0x1.FFFFFFFFFFFFEp-3, 0x1p-55, 0x8000 },
 		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFEp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFCp-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFF8p-2, -0x1.FFFFFFFFFFFFDp-3, 0x1p-55, 0x4000 },
+		{ 0x1.FFFFFFFFFFFFEp-2, 0x1.FFFFFFp-2, -0x1.FFFFFFFFFFFFDp-3, -0x1p-27, 0x4000 },
 
 		// Test inf/nan
 		{ std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0x9000 },
@@ -1027,7 +1035,6 @@ int main()
 	MaddSingleRoundInf();
 
 	static_assert(RAND_MAX == 0x7FFFFFFF, "");
-	if (0)
 	do
 	{
 		int alow = rand();
